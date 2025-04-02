@@ -1,0 +1,412 @@
+; PIC16F877A Configuration Bit Settings
+; Assembly source line config statements
+;
+; CONFIG
+CONFIG FOSC = EXTRC       ; Set the oscillator type to external resistor-capacitor (RC) ;oscillator
+CONFIG WDTE = OFF         ; Disable Watchdog Timer to prevent unintended resets
+CONFIG PWRTE = OFF        ; Disable Power-up Timer, so there's no delay during power-up
+CONFIG BOREN = OFF        ; Disable Brown-out Reset to avoid unwanted resets due to voltage ;dips
+CONFIG LVP = OFF          ; Disable Low-Voltage ICSP (In-Circuit Serial Programming) - high ;voltage needed for MCLR
+CONFIG CPD = OFF          ; No code protection on Data EEPROM
+CONFIG WRT = OFF          ; Disable write protection on Flash program memory
+CONFIG CP = OFF           ; Disable code protection on program memory
+;
+#include <xc.inc>         
+    ; Include standard header file for definitions
+;
+; -------- Initialization Section --------
+PSECT start, CLASS=CODE, DELTA=2
+start:
+    PAGESEL MAIN
+    GOTO MAIN
+
+
+loop1_15  equ 0x32        ; Label address 0x32 in general-purpose register for loop1_15 counter
+loop2_8   equ 0x33        ; Label address 0x33 in general-purpose register for loop2_8 counter
+use_delay equ 0x34        ; Label address 0x34 in general-purpose register for delay usage
+display_data equ 0x21     ; Label address 0x21 in general-purpose register for display data storage
+
+ ;
+; Configure PORTB and Set Initial States
+PSECT CODE, DELTA=2
+;
+BANKSEL TRISB             ; Select bank for setting TRISB (Bank 1)
+CLRF TRISB                ; Set all PORTB pins as outputs
+CLRF TRISC		    ;Set all PORTc pins as outputs
+BANKSEL PORTB             ; Switch to bank with PORTB control (Bank 0)
+CLRF PORTB                ; Clear PORTB to ensure all outputs are low
+CLRF PORTC		; Clear PORTc to ensure all outputs are low
+; In this code PORTB, 0, 3 and portc 0 - DATA INPUT
+;	       PORTB, 1, 4 and PORTC 1 - Chip Select
+;	       PORTB, 2, 5 and PORTC 2 - Clock Signal 
+
+;Display Configuration for Display driver 1
+MOVLW 0x04                ; Load configuration address for MAX6952
+MOVWF 0x22                ; Move the configuration address to address 0x22
+MOVLW 0x81                ; Load configuration data for MAX6952
+MOVWF 0x23                ; Store configuration data in address 0x23
+
+MOVLW 0x01                ; Load intensity address work register
+MOVWF 0x24                ; Store address in 0x24 for intensity control
+MOVLW 0xFF                ; Load 0xFF to the work register to set the maximum intensity
+MOVWF 0x25                ; Store the above value in 0x25 memory location
+
+MOVLW 0x02                ; Load intensity address  work register
+MOVWF 0x26                ; Store address in 0x26 for intensity control
+MOVLW 0xFF                ; Load 0xFF to the work register to set the maximum intensity for ;second range
+MOVWF 0x27                ; Store maximum intensity value in 0x27 memory location
+
+MOVLW 0x07                ; Load address for display test to work register
+MOVWF 0x28                ; Store address in 0x28 memory location
+MOVLW 0x00                ; Load the display test data to the wor reigster
+MOVWF 0x29                ; Store the data in 0x29 memory location 
+
+;Display Configuration for Display Driver 2
+MOVLW 0x04		    ; Load configuration address for MAX6952
+MOVWF 0x36		    ; Move the configuration address to address 0x36
+MOVLW 0x81		    ; Load configuration data for MAX6952
+MOVWF 0x37		    ; Store configuration data in address 0x37
+
+MOVLW 0x01                ; Load intensity address to work register
+MOVWF 0x38                ; Store address in 0x38 for intensity control
+MOVLW 0xFF                ; Load 0xFF to the work register to set the maximum intensity
+MOVWF 0x39                ; Store the above value in 0x39 memory location
+
+MOVLW 0x02                ; Load intensity address to work register
+MOVWF 0x3A                ; Store address in 0x3A for intensity control
+MOVLW 0xFF                ; Load 0xFF to the work register to set the maximum intensity for ;second range
+MOVWF 0x3B                ; Store maximum intensity value in 0x3B memory location
+
+MOVLW 0x07                ; Load address for display test to work register
+MOVWF 0x3C                ; Store address in 0x3C memory location
+MOVLW 0x00                ; Load the display test data to the wor reigster
+MOVWF 0x3D                ; Store the data in 0x3D memory location
+;
+; Load Display Values FOr Display Driver 1
+GiveData:
+MOVLW 0x20                ; Load address to display digit 0 to work register
+MOVWF 0x2A                ; Store address in 0x2A
+MOVLW 0x54                ; Load the data for display 0 as "T".
+MOVWF 0x2B                ; Store "E" in 0x2B  memory location.
+; 
+MOVLW 0x21                ; Load address to display digit 1 to work register
+MOVWF 0x2C                ; Store address in 0x2C
+MOVLW 0x48               ; Load the data for display 1 as "H".
+MOVWF 0x2D                ; Store "N" in 0x2D  memory location.
+;
+MOVLW 0x22                ; Load address to display digit 2 to work reigster
+MOVWF 0x2E                ; Store address in 0x2E
+MOVLW 0x49                ; Load the data for display 2 as "I.
+MOVWF 0x2F                ; Store "2" 0x2F  memory location.
+;
+MOVLW 0x23                ; Load address to display digit 3 to work register
+MOVWF 0x30                ; Store address in 0x30
+MOVLW 0x4C                ; Load the data for display 3 as "L".
+MOVWF 0x31                ; Store "3" in 0x31  memory location.
+;
+;Load Values For Displau Driver 2
+MOVLW 0x20                ; Load address to display digit 0 to work register
+MOVWF 0x3E                ; Store address in 0x3E
+MOVLW 0x49                ; Load the data for display 0 as "I".
+MOVWF 0x3F                ; Store "3" in 0x3F  memory location.
+;
+
+MOVLW 0x21                ; Load address to display digit 1 to work register
+MOVWF 0x40                ; Store address in 0x40
+MOVLW 0x4E               ; Load the data for display 1 as "N".
+MOVWF 0x41                ; Store "0" in  0x41  memory location.
+;
+MOVLW 0x22                ; Load address to display digit 2 to work reigster
+MOVWF 0x42                ; Store address in 0x42
+MOVLW 0x41                ; Load the data for display 2 as "A".
+MOVWF 0x43                ; Store "2" in 0x43  memory location.
+;
+;    
+MOVLW 0x20                ; Load address to display digit 0 to work register
+MOVWF 0x53                ; Store address in 0x53 memory location.
+    ;(This additional load value of the digit 0 is to Control the FSR Correclty without adding the ;grabage values)
+    
+MOVLW 0x21		  ; Load 0x21 to the work register
+MOVWF FSR                 ; Set the loaded value( 0x21) in File Select Register
+;
+; ---- Display Driver 1 Output Loops and Delay Routines ----
+   
+first8bit_loop1:
+    BSF PORTB,1           ; Set CS (Chip Select) high
+    CALL bit_delay        ; Call delay funtion
+    BCF PORTB,2           ; Set CLK (Clock) low
+    CALL bit_delay        ; Delay for clocking data
+    BCF PORTB,1           ; Set CS low
+    CALL bit_delay        ; Final delay before starting data transfer
+    MOVLW 0x09		  ; Load 0x09 to the work register
+    MOVWF loop1_15        ; Move the above value to loop1_15 counter
+
+MOVLW 0x09            ; Load 0x09 to the work register   
+    MOVWF loop2_8         ; Move the above value to loop2_8 counter
+    INCF FSR              ; Increment the address value in file select register by 1
+    MOVF FSR, W               ; Move FSR address value to W
+    SUBLW 0x35                ; Subtract 0x35 from W
+    BTFSC STATUS, 2           ; Check Zero flag, if FSR == 0x35 Zero Flag will be 1. If not its 0.
+    ;  INCF FSR and the Check if FSR has reached or exceeded 0x35
+    GOTO first8bit_loop2         ; If FSR is 0x35, go to first8bit_loop2 
+    MOVF INDF, W          ; Retrieve data at FSR location and store the data in the work register
+    MOVWF display_data    ; Move data to display_data register
+;
+MAIN:
+    DECFSZ loop1_15       ; Decrement loop1_15, skip if zero
+    GOTO first_word_rotation ; Continue rotation if not zero
+    GOTO second8bit_loop1 ; Else move to next 8-bit sequence
+;
+first_word_rotation:
+    BCF PORTB,2           ; Set CLK low
+    CALL bit_delay        ; Call a delay
+    BTFSS display_data,7  ; Test MSB of display_data; skip if set
+    GOTO zero1            ; Go to zero1 if bit is 0
+    BSF PORTB,0           ; Set DATA high if bit is 1
+    CALL bit_delay        ; Call the delay funtion
+    BSF PORTB,2           ; Set CLK high
+    CALL bit_delay        ; Call the delay funtion
+    RLF display_data      ; Rotate the content in the display_data left
+    NOP			  ; Small delay is called. To reduce timing errors.
+    GOTO MAIN             ; Repeat from MAIN
+;
+zero1:
+    BCF PORTB,2           ; CLK low for next bit
+    CALL bit_delay	    ; Call the delay funtion
+    BCF PORTB,0           ; DATA low
+    CALL bit_delay	    ;Call the delay funtion
+    BSF PORTB,2           ; CLK high for next bit
+    CALL bit_delay	    ;Call the delay funtion
+    RLF display_data      ; Rotate data left
+    GOTO MAIN             ; Repeat from MAIN
+;
+; ----- Second 8-Bit Loop and Related Operations -----
+second8bit_loop1:
+    BCF PORTB,2           ; CLK low
+    CALL bit_delay	    ;Call the delay funtion
+    INCF FSR              ; Increment the address value in the FSR by 1
+    MOVF FSR, W           ; Move FSR address value to Work Register
+    SUBLW 0x35                ; Subtract 0x35 from Work Register
+    BTFSC STATUS, 2           ; Check Zero flag, if FSR == 0x35 Zero Flag will be 1. If not its 0.
+    ;  INCF FSR and the Check if FSR has reached or exceeded 0x35
+    GOTO first8bit_loop2         ; If FSR is 0x35, go to first8bit_loop2 
+    MOVF INDF, W          ; Retrieve data at FSR location and store the data in the work register
+    MOVWF display_data    ; Store the data in display_data
+;
+MAIN2:
+    DECFSZ loop2_8        ; Decrement loop2_8, skip if zero
+    GOTO second_word_rotation ; Continue if non-zero. the execution will send to ;second_word_rotation  
+    GOTO first8bit_loop1  ; Else, return to first 8-bit loop
+;
+second_word_rotation:
+    BCF PORTB,2           ; Set CLK low
+    CALL bit_delay	   ; Call the delay funtion
+    BTFSS display_data,7  ; Test MSB of display_data; skip if set
+    GOTO zero2            ; If zero, go to zero2
+    BSF PORTB,0           ; Set DATA high
+    CALL bit_delay	   ; Call the delay funtion
+    BSF PORTB,2           ; Set CLK high
+    CALL bit_delay	    ; Call the delay funtion
+    RLF display_data      ; Rotate display_data left
+    GOTO MAIN2            ; Loop back to MAIN2
+;
+zero2:
+    BCF PORTB,2           ; Set CLK low
+    CALL bit_delay	   ; Call the delay funtion
+    BCF PORTB,0           ;Set DATA low
+    CALL bit_delay	    ; Call the delay funtion
+    BSF PORTB,2           ; Set CLK high
+    CALL bit_delay	    ; Call the delay funtion
+    RLF display_data      ; Rotate the content in the display_data left
+    GOTO MAIN2            ; Loop back to MAIN2
+    
+; ---- Display Driver 2 Output Loops and Delay Routines ----
+    
+first8bit_loop2:
+    BSF PORTB,4           ; Set CS (Chip Select) high
+    CALL bit_delay        ; Add delay between bits
+    BCF PORTB,5           ; Set CLK (Clock) low
+    CALL bit_delay        ; Delay for clocking data
+    BCF PORTB,4           ; Set CS low
+    CALL bit_delay        ; Final delay before starting data transfer
+    MOVLW 0x09		  ; Load 0x09 to the work register
+    MOVWF loop1_15        ; Move the above value to loop1_15 counter
+
+MOVLW 0x09            ; Load 0x09 to the work register   
+    MOVWF loop2_8         ; Move the above address value to loop2_8 counter
+    INCF FSR              ; Increment the address value in file select register by 1
+    ;  INCF FSRCheck if FSR has reached or exceeded 0x46
+    MOVF FSR, W               ; Move FSR value to W
+    SUBLW 0x46                ; Subtract 0x46 from W
+    BTFSC STATUS, 2           ; Check Zero flag, if FSR == 0x46 the zero flag will become 1.  if ;not its 0.
+    GOTO first8bit_loop3            ; If FSR is 0x46 go to first8bit_loop3 
+    MOVF INDF, W          ; Retrieve data at FSR location and store the data in the work register
+    MOVWF display_data    ; Move data to display_data register
+;
+MAIN3:
+    DECFSZ loop1_15       ; Decrement loop1_15, skip if zero
+    GOTO first_word_rotation2 ; Continue rotation if not zero.(Execution passes to first_word_rotation2)
+    GOTO second8bit_loop2 ; Else move to next 8-bit sequence. (Execution passes to second8bit_loop2)
+;
+first_word_rotation2:
+    BCF PORTB,5           ; Set CLK low
+    CALL bit_delay        ; Call a delay
+    BTFSS display_data,7  ; Test MSB of display_data; skip if set
+    GOTO zero3            ; Go to zero3 if bit is 0
+    BSF PORTB,3           ; Set DATA high 
+    CALL bit_delay        ; Call the delay funtion
+    BSF PORTB,5           ; Set CLK high
+    CALL bit_delay        ; Call a delay
+    RLF display_data      ; Rotate the content in the display_data left
+    NOP			  ; Small delay is called. To reduce timing errors.
+    GOTO MAIN3             ; Repeat from MAIN3
+;
+zero3:
+    BCF PORTB,5           ; CLK low for next bit
+    CALL bit_delay	    ; Call delay function
+    BCF PORTB,3           ; DATA low
+    CALL bit_delay	     ; Call delay function
+    BSF PORTB,5           ; CLK high for next bit
+    CALL bit_delay	     ; Call delay function
+    RLF display_data      ; Rotate the content in the display_data left
+    GOTO MAIN3             ; Repeat from MAIN3
+;
+; ----- Second 8-Bit Loop and Related Operations -----
+second8bit_loop2:
+    BCF PORTB,5           ; Set CLK low
+    CALL bit_delay	    ; Call delay function      
+    INCF FSR              ; Increment the address value in the FSR by 1
+    MOVF FSR, W               ; Move FSR address value to W
+    SUBLW 0x46                ; Subtract 0x46 from W
+    ;  INCF FSRCheck if FSR has reached or exceeded 0x46
+    BTFSC STATUS, 2           ; Check Zero flag, if FSR == 0x46 the zero flag will become 1. If ;not its 0
+    GOTO first8bit_loop3            ; If FSR is 0x46, go to first8bit_loop3 
+    MOVF INDF, W          ; Retrieve data at FSR location and store the data in the work register
+    MOVWF display_data    ; Store the data in display_data
+;
+MAIN4:
+    DECFSZ loop2_8        ; Decrement loop2_8, skip if zero
+    GOTO second_word_rotation2 ; Continue if non-zero(Execution will be passed to ;second_word_rotation2)
+    GOTO first8bit_loop2  ; Else, return to first 8-bit loop
+;
+second_word_rotation2:
+    BCF PORTB,5           ; Set CLK low
+    CALL bit_delay	   ; Call delay function
+    BTFSS display_data,7  ; Test MSB of display_data; skip if set
+    GOTO zero4            ; If zero, go to zero4
+    BSF PORTB,3           ; Set DATA high
+    CALL bit_delay	    ; Call delay function
+    BSF PORTB,5           ; Set CLK high
+    CALL bit_delay	 ; Call delay function
+    RLF display_data      ; Rotate the content in the display_data left
+    GOTO MAIN4            ; Loop back to MAIN4
+;
+zero4:
+    BCF PORTB,5           ; Set CLK low
+    CALL bit_delay	   ; Call delay function
+    BCF PORTB,3           ; Set DATA low
+    CALL bit_delay	    ; Call delay function
+    BSF PORTB,5           ; Set CLK high
+    CALL bit_delay	    ; Call delay function
+    RLF display_data      ; Rotate the content in the display_data left
+    GOTO MAIN4            ; Loop back to MAIN4
+; 
+
+; ---- Display Driver 3 Output Loops and Delay Routines ----
+first8bit_loop3:
+    NOP			  ; Small delay is called. To reduce timing errors.
+    BSF PORTC,1           ; Set CS (Chip Select) high
+    CALL bit_delay        ; Add delay between bits
+    BCF PORTC,2           ; Set CLK (Clock) low
+    CALL bit_delay        ; Delay for clocking data
+    BCF PORTC,1           ; Set CS low
+    CALL bit_delay        ; Final delay before starting data transfer
+    MOVLW 0x09		  ; Load 0x09 to the work register
+    MOVWF loop1_15        ; Move the above value to loop1_15 counter
+
+MOVLW 0x09            ; Load 0x09 to the work register   
+    MOVWF loop2_8         ; Move the above value to loop2_8 counter
+    INCF FSR              ; Increment the address value in file select register by 1
+    MOVF FSR, W               ; Move FSR address value to Work Register
+    SUBLW 0x53                ; Subtract 0x53 from Work Register
+    BTFSC STATUS, 2           ; Check Zero flag, if FSR == 0x53 the zero flag will become 1. if no its 0
+    ;  INCF FSRCheck if FSR has reached or exceeded 0x53
+    GOTO GiveData        ; If FSR is 0x53, go to GiveData
+    MOVF INDF, W          ; Else Retrieve data at FSR location and store the data in the work ;register
+    MOVWF display_data    ; Move data to display_data register
+;
+MAIN5:
+    NOP			  ; Small delay is called. To reduce timing errors.
+    DECFSZ loop1_15       ; Decrement loop1_15, skip if zero
+    GOTO first_word_rotation3 ; Continue rotation if not zero.(Execution passes to ;first_word_rotation3)
+    GOTO second8bit_loop3 ; Else move to next 8-bit sequence. (Execution passes to ;second8bit_loop3)
+;
+first_word_rotation3:
+    BCF PORTC,2           ; Set CLK low
+    CALL bit_delay        ; Call delay function
+    BTFSS display_data,7  ; Test MSB of display_data; skip if set
+    GOTO zero5            ; Go to zero5 if bit is 0
+    BSF PORTC,0           ; Set DATA high MSB bit is 1
+    CALL bit_delay        ; Call the delay funtion
+    BSF PORTC,2           ; Set CLK high
+    CALL bit_delay        ;  Call delay function
+    RLF display_data      ; Rotate the content in the display_data left
+    GOTO MAIN5             ; Repeat from MAIN5
+;
+zero5:
+    BCF PORTC,2           ; Set CLK low for next bit
+    CALL bit_delay        ;  Call delay function
+    BCF PORTC,0             ; Set DATA low
+    CALL bit_delay	    ; Call delay function
+    BSF PORTC,2           ; Set CLK high for next bit
+    CALL bit_delay	    ;  Call delay function
+    RLF display_data      ;  Rotate the content in the display_data left
+    GOTO MAIN5             ; Repeat from MAIN5
+;
+; ----- Second 8-Bit Loop and Related Operations -----
+second8bit_loop3:
+    BCF PORTC,2           ; Set CLK low
+    CALL bit_delay	;  Call delay function
+    INCF FSR              ; Increment the address value in the FSR by 1
+        MOVF FSR, W               ; Move FSR address value to Work Register
+    SUBLW 0x53                ; Subtract 0x53 from Work Register
+    BTFSC STATUS, 2             ; Check Zero flag, if FSR == 0x53 the zero flag will become 1. if ;not its 0
+    ;  INCF FSRCheck if FSR has reached or exceeded 0x53
+    GOTO GiveData         ; If FSR is 0x53, go to GiveData
+    MOVF INDF, W          ; Retrieve data at FSR location and store the data in the work register
+    MOVWF display_data    ; Store the data in display_data
+;
+MAIN6:
+    DECFSZ loop2_8        ; Decrement loop2_8, skip if zero
+    GOTO second_word_rotation3 ; Continue if non-zero
+    GOTO first8bit_loop3  ; Else, return to first 8-bit loop
+;
+second_word_rotation3:
+    BCF PORTC,2           ; Set CLK low
+    CALL bit_delay	    ;  Call delay function
+    BTFSS display_data,7  ; Test MSB of display_data; skip if set
+    GOTO zero6            ; If 0, go to zero6
+    BSF PORTC,0           ; Else Set DATA high
+    CALL bit_delay	   ;  Call delay function
+    BSF PORTC,2           ; Set CLK high
+    CALL bit_delay	    ;  Call delay function
+    RLF display_data      ; Rotate the content in the display_data left
+    GOTO MAIN6            ; Loop back to MAIN6
+;
+zero6:
+    BCF PORTC,2           ; Set CLK low
+    CALL bit_delay	      ;  Call delay function
+    BCF PORTC,0           ; Set DATA low
+    CALL bit_delay	      ;  Call delay function
+    BSF PORTC,2           ;Set CLK high
+    CALL bit_delay	      ;  Call delay function
+    RLF display_data      ; Rotate the content in the display_data left
+    GOTO MAIN6            ; Loop back to MAIN6
+;..............................................*/
+    
+bit_delay:                ; Subroutine for bit-level delay
+    DECFSZ use_delay      ; Decrement delay counter (Decrement use_delay  by 1)
+    GOTO bit_delay        ; Repeat if non-zero.
+    MOVLW 0x0F            ; Load  the value 0x0F to the work register
+    MOVWF bit_delay       ; Store the value in bit_delay
+    RETURN                ; Return to calling location
